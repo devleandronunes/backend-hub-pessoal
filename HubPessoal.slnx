@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="HubPessoal.Api/HubPessoal.Api.csproj" />
+  <Project Path="HubPessoal.Application/HubPessoal.Application.csproj" />
+  <Project Path="HubPessoal.Domain/HubPessoal.Domain.csproj" />
+  <Project Path="HubPessoal.Infrastructure/HubPessoal.Infrastructure.csproj" />
+</Solution>
