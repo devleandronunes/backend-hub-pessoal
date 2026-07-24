@@ -16,7 +16,21 @@ builder.Services
     .AddHealthChecks()
     .AddDbContextCheck<AppDbContext>(name: "database");
 
+const string CorsPolicy = "frontend";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(CorsPolicy, policy =>
+    policy
+    .WithOrigins(
+        "http://localhost:3000",
+        "https://frontend-hub-pessoal.vercel.app")
+    .AllowAnyHeader()
+    .AllowAnyMethod());
+});
+
 var app = builder.Build();
+
+app.UseCors(CorsPolicy);
 
 using (var scope = app.Services.CreateScope())
 {
