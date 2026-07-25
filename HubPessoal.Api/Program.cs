@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using HubPessoal.Infrastructure;
 using HubPessoal.Infrastructure.Data;
+using HubPessoal.Api.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 var port = Environment.GetEnvironmentVariable("PORT");
@@ -16,6 +17,12 @@ builder.Services
     .AddHealthChecks()
     .AddDbContextCheck<AppDbContext>(name: "database");
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
 const string CorsPolicy = "frontend";
 builder.Services.AddCors(options =>
 {
@@ -30,6 +37,14 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.UseExceptionHandler();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.UseCors(CorsPolicy);
 
 using (var scope = app.Services.CreateScope())
@@ -41,4 +56,8 @@ using (var scope = app.Services.CreateScope())
 
 // app.MapGet("/", () => "Hub Pessoal API - v1.0.0");
 app.MapHealthChecks("/health");
+app.MapGet("/erro-teste", () =>
+{
+    throw new InvalidOperationException("Erro de teste do middleware.");
+});
 app.Run();
