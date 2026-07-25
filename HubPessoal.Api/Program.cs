@@ -56,8 +56,8 @@ using (var scope = app.Services.CreateScope())
 
 // app.MapGet("/", () => "Hub Pessoal API - v1.0.0");
 app.MapHealthChecks("/health");
-app.MapGet("/erro-teste", () =>
-{
-    throw new InvalidOperationException("Erro de teste do middleware.");
-});
+// app.MapGet("/erro-teste", () =>
+// {
+//     throw new InvalidOperationException("Erro de teste do middleware.");
+// });
 app.Run();
