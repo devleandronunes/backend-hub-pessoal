@@ -1,4 +1,7 @@
+using HubPessoal.Application.Interfaces;
 using HubPessoal.Infrastructure.Data;
+using HubPessoal.Infrastructure.Data.Repositories;
+using HubPessoal.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +20,10 @@ public static class DependencyInjection
 
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(connectionString));
+
+        services.AddScoped<IUserRepository, userRepository>();
+        services.AddSingleton<IPasswordHasher, Argon2PasswordHasher>();
+        services.AddScoped<ITokenService, JwtTokenService>();
 
         return services;
     }
