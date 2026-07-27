@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HubPessoal.Infrastructure.Data.Repositories;
 
-public class userRepository : IUserRepository
+public class UserRepository : IUserRepository
 {
     private readonly AppDbContext _context;
 
-    public userRepository(AppDbContext context)
+    public UserRepository(AppDbContext context)
     {
         _context = context;
     }
