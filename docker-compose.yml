@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: always
+    container_name: personal-hub-db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DEV_NAME}
+      DB_STAGING_NAME: ${DB_STAGING_NAME:-}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d
+
+volumes:
+  db-data:

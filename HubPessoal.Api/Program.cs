@@ -103,6 +103,12 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
+{
+    using var seedScope = app.Services.CreateScope();
+    var seedDb = seedScope.ServiceProvider.GetRequiredService<AppDbContext>();
+}
+
 // app.MapGet("/", () => "Hub Pessoal API - v1.0.0");
 app.MapHealthChecks("/health");
 

@@ -8,6 +8,7 @@
 
 # DB files
 db-init
+HubPessoal.Api/appsettings.Staging.json
 
 # User-specific files
 *.rsuser
