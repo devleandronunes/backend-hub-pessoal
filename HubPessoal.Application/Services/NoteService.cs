@@ -53,7 +53,7 @@ public class NoteService
         var note = await _noteRepository.GetByIdAsync(id);
         if (note is null)
         {
-            return (UpdateNoteResult.DuplicateTitle, null);
+            return (UpdateNoteResult.NotFound, null);
         }
 
         if (await _noteRepository.ExistsAsync(note.FolderId, title, excludeId: id))

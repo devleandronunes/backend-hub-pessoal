@@ -10,6 +10,7 @@ public static class DependencyInjection
         services.AddScoped<AuthService>();
         services.AddScoped<NoteService>();
         services.AddScoped<NoteFolderService>();
+        services.AddScoped<SyncService>();
         return services;
     }
 }

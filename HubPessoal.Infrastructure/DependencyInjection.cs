@@ -1,6 +1,7 @@
 using HubPessoal.Application.Interfaces;
 using HubPessoal.Infrastructure.Data;
 using HubPessoal.Infrastructure.Data.Repositories;
+using HubPessoal.Infrastructure.Git;
 using HubPessoal.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -26,6 +27,8 @@ public static class DependencyInjection
         services.AddScoped<INoteFolderRepository, NoteFolderRepository>();
         services.AddSingleton<IPasswordHasher, Argon2PasswordHasher>();
         services.AddScoped<ITokenService, JwtTokenService>();
+        services.AddSingleton<IGitClient, GitClient>();
+        services.AddScoped<ISyncCommitRepository, SyncCommitRepository>();
 
         return services;
     }

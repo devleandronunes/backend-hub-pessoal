@@ -12,6 +12,8 @@ public class AppDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<NoteFolder> NoteFolders => Set<NoteFolder>();
     public DbSet<Note> Notes => Set<Note>();
+    public DbSet<SyncCommit> SyncCommits => Set<SyncCommit>();
+    public DbSet<SyncCommitFile> SyncCommitFiles => Set<SyncCommitFile>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -40,6 +42,17 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(n => n.FolderId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<SyncCommit>(entity =>
+        {
+            entity.HasIndex(c => c.CommitHash).IsUnique();
+            entity.HasIndex(c => c.CommittedAt);
+
+            entity.HasMany(c => c.Files)
+                .WithOne()
+                .HasForeignKey(f => f.SyncCommitId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

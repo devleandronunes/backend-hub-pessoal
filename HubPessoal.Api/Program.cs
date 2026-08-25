@@ -17,6 +17,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.Extensions.Options;
 using HubPessoal.Api.Filters;
+using HubPessoal.Application.Options;
+using HubPessoal.Api.Contracts.Sync;
+using HubPessoal.Application.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 var port = Environment.GetEnvironmentVariable("PORT");
@@ -78,7 +81,12 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+builder.Services.Configure<GitOptions>(
+    builder.Configuration.GetSection(GitOptions.SectionName));
+
 var app = builder.Build();
+
+app.Services.GetRequiredService<IOptions<GitOptions>>().Value.EnsureConfigured();
 
 app.UseExceptionHandler();
 
@@ -282,6 +290,52 @@ notes.MapGet("/{id:guid}/export", async (Guid id, NoteService noteService) =>
 
     var bytes = System.Text.Encoding.UTF8.GetBytes(note.Content);
     return Results.File(bytes, "text/markdown", $"{note.Title}.md");
+});
+
+var sync = app.MapGroup("/sync").RequireAuthorization();
+
+sync.MapGet("/status", async (SyncService syncService) =>
+{
+    var plan = await syncService.PreviewAsync();
+    return Results.Ok(new SyncStatusResponse(
+        plan.State.ToString(), plan.FilesChanged, plan.IncomingCommits));
+});
+
+sync.MapPost("/preview", async (SyncService syncService) =>
+{
+    var plan = await syncService.PreviewAsync();
+    return Results.Ok(SyncPlanResponse.FromPlan(plan));
+});
+
+sync.MapPost("/apply", async (ApplySyncRequest request, SyncService syncService) =>
+{
+    var outcome = await syncService.ApplyAsync(request.Fingerprint);
+
+    return outcome.Result switch
+    {
+        SyncApplyResult.Success => Results.Ok(new { commitHash = outcome.CommitHash }),
+        SyncApplyResult.NothingToDo => Results.NoContent(),
+        SyncApplyResult.PlanExpired => Results.Conflict(
+            new ApplySyncErrorResponse("PlanExpired", outcome.Detail ?? string.Empty)),
+        SyncApplyResult.Conflict => Results.Conflict(
+            new ApplySyncErrorResponse("Conflict", outcome.Detail ?? string.Empty)),
+        SyncApplyResult.GitFailure => Results.Problem(outcome.Detail),
+        _ => Results.Problem()
+    };
+});
+
+sync.MapGet("/history", async (ISyncCommitRepository commitRepository) =>
+{
+    var commits = await commitRepository.GetRecentAsync(50);
+
+    return Results.Ok(commits.Select(c => new SyncCommitSummaryResponse(
+        c.CommitHash, c.Message, c.CommittedAt, c.FilesChanged, c.Insertions, c.Deletions)));
+});
+
+sync.MapGet("/history/{hash}", async (string hash, ISyncCommitRepository commitRepository) =>
+{
+    var commit = await commitRepository.GetByHashAsync(hash);
+    return commit is null ? Results.NotFound() : Results.Ok(SyncCommitDetailResponse.FromEntity(commit));
 });
 
 app.Run();
