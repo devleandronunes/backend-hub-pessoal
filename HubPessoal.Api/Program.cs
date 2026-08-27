@@ -20,6 +20,7 @@ using HubPessoal.Api.Filters;
 using HubPessoal.Application.Options;
 using HubPessoal.Api.Contracts.Sync;
 using HubPessoal.Application.Models;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 var port = Environment.GetEnvironmentVariable("PORT");
@@ -36,7 +37,26 @@ builder.Services
     .AddDbContextCheck<AppDbContext>(name: "database");
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Cole apenas o token retornado por /auth/login (sem o prefixo \"Bearer \")."
+    });
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecuritySchemeReference("Bearer", document, null),
+            new List<string>()
+        }
+    });
+});
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -135,13 +155,13 @@ app.MapPost("/auth/login", async(LoginRequest request, AuthService authService) 
     return token is null
         ? Results.Unauthorized()
         : Results.Ok(new LoginResponse(token));
-});
+}).WithSummary("Autentica um usuário e retorna um token JWT.");
 
 app.MapGet("auth/me", (ClaimsPrincipal user) =>
 {
     var username = user.FindFirstValue(JwtRegisteredClaimNames.UniqueName);
     return Results.Ok(new { username });
-}).RequireAuthorization();
+}).RequireAuthorization().WithSummary("Retorna o usuário autenticado atual.");
 // app.MapGet("/erro-teste", () =>
 // {
 //     throw new InvalidOperationException("Erro de teste do middleware.");
@@ -153,7 +173,7 @@ folders.MapGet("/", async (NoteFolderService folderService) =>
 {
     var allFolders = await folderService.GetAllAsync();
     return Results.Ok(allFolders.Select(FolderResponse.FromEntity));
-});
+}).WithSummary("Lista todas as pastas.");
 
 folders.MapPost("/", async (CreateFolderRequest request, NoteFolderService folderService) =>
 {
@@ -165,7 +185,7 @@ folders.MapPost("/", async (CreateFolderRequest request, NoteFolderService folde
         CreateFolderResult.DuplicateName => Results.Conflict("A folder with this name already exists in the same parent."),
         _ => Results.Problem()
     };
-}).AddEndpointFilter<ValidationFilter<CreateFolderRequest>>();
+}).AddEndpointFilter<ValidationFilter<CreateFolderRequest>>().WithSummary("Cria uma nova pasta.");
 
 folders.MapPut("/{id:guid}", async (Guid id, RenameFolderRequest request, NoteFolderService folderService) =>
 {
@@ -177,7 +197,7 @@ folders.MapPut("/{id:guid}", async (Guid id, RenameFolderRequest request, NoteFo
         RenameFolderResult.DuplicateName => Results.Conflict("A folder with this name already exists in the same parent."),
         _ => Results.Problem()
     };
-}).AddEndpointFilter<ValidationFilter<RenameFolderRequest>>();
+}).AddEndpointFilter<ValidationFilter<RenameFolderRequest>>().WithSummary("Renomeia uma pasta.");
 
 folders.MapPatch("/{id:guid}/move", async (Guid id, MoveFolderRequest request, NoteFolderService folderService) =>
 {
@@ -191,7 +211,7 @@ folders.MapPatch("/{id:guid}/move", async (Guid id, MoveFolderRequest request, N
         MoveFolderResult.DuplicateName => Results.Conflict("A folder with this name already exists in the target parent."),
         _ => Results.Problem()
     };
-}).AddEndpointFilter<ValidationFilter<MoveFolderRequest>>();
+}).AddEndpointFilter<ValidationFilter<MoveFolderRequest>>().WithSummary("Move uma pasta para outro pai (ou para a raiz).");
 
 folders.MapDelete("/{id:guid}", async (Guid id, NoteFolderService folderService) =>
 {
@@ -203,7 +223,7 @@ folders.MapDelete("/{id:guid}", async (Guid id, NoteFolderService folderService)
         DeleteFolderResult.NotEmpty => Results.Conflict("Folder is not empty. Move or delete its contents first."),
         _ => Results.Problem()
     };
-});
+}).WithSummary("Remove uma pasta vazia.");
 
 var notes = app.MapGroup("/notes").RequireAuthorization();
 
@@ -211,19 +231,19 @@ notes.MapGet("/", async (NoteService noteService) =>
 {
     var allNotes = await noteService.GetAllAsync();
     return Results.Ok(allNotes.Select(NoteResponse.FromEntity));
-});
+}).WithSummary("Lista todas as notas.");
 
 notes.MapGet("tree", async (NoteService noteService) =>
 {
     var tree = await noteService.GetTreeAsync();
     return Results.Ok(tree);
-});
+}).WithSummary("Retorna a árvore de pastas e notas.");
 
 notes.MapGet("/{id:guid}", async (Guid id, NoteService noteService) =>
 {
     var note = await noteService.GetByIdAsync(id);
     return note is null ? Results.NotFound() : Results.Ok(NoteResponse.FromEntity(note));
-});
+}).WithSummary("Retorna uma nota pelo id.");
 
 notes.MapPost("/", async (CreateNoteRequest request, NoteService noteService) =>
 {
@@ -235,7 +255,7 @@ notes.MapPost("/", async (CreateNoteRequest request, NoteService noteService) =>
         CreateNoteResult.DuplicateTitle => Results.Conflict("A note with this title already exists in the same folder."),
         _ => Results.Problem()
     };
-}).AddEndpointFilter<ValidationFilter<CreateNoteRequest>>();
+}).AddEndpointFilter<ValidationFilter<CreateNoteRequest>>().WithSummary("Cria uma nova nota.");
 
 notes.MapPut("/{id:guid}", async (Guid id, UpdateNoteRequest request, NoteService noteService) =>
 {
@@ -247,7 +267,7 @@ notes.MapPut("/{id:guid}", async (Guid id, UpdateNoteRequest request, NoteServic
         UpdateNoteResult.DuplicateTitle => Results.Conflict("A note with this title already exists in the same folder."),
         _ => Results.Problem()
     };
-}).AddEndpointFilter<ValidationFilter<UpdateNoteRequest>>();
+}).AddEndpointFilter<ValidationFilter<UpdateNoteRequest>>().WithSummary("Atualiza título, conteúdo e tags de uma nota.");
 
 notes.MapPatch("/{id:guid}/move", async (Guid id, MoveNoteRequest request, NoteService noteService) =>
 {
@@ -260,25 +280,25 @@ notes.MapPatch("/{id:guid}/move", async (Guid id, MoveNoteRequest request, NoteS
         MoveNoteResult.DuplicateTitle => Results.Conflict("A note with this title already exists in the target folder."),
         _ => Results.Problem()
     };
-});
+}).WithSummary("Move uma nota para outra pasta (ou para a raiz).");
 
 notes.MapDelete("/{id:guid}", async (Guid id, NoteService noteService) =>
 {
     var deleted = await noteService.DeleteAsync(id);
     return deleted ? Results.NoContent() : Results.NotFound();
-});
+}).WithSummary("Remove uma nota.");
 
 notes.MapPatch("/{id:guid}/pin", async (Guid id, NoteService noteService) =>
 {
     var note = await noteService.TogglePinAsync(id);
     return note is null ? Results.NotFound() : Results.Ok(NoteResponse.FromEntity(note));
-});
+}).WithSummary("Fixa ou desafixa uma nota.");
 
 notes.MapPost("/{id:guid}/duplicate", async (Guid id, NoteService noteService) =>
 {
     var copy = await noteService.DuplicateAsync(id);
     return copy is null ? Results.NotFound() : Results.Created($"/notes/{copy.Id}", NoteResponse.FromEntity(copy));
-});
+}).WithSummary("Duplica uma nota.");
 
 notes.MapGet("/{id:guid}/export", async (Guid id, NoteService noteService) =>
 {
@@ -290,7 +310,7 @@ notes.MapGet("/{id:guid}/export", async (Guid id, NoteService noteService) =>
 
     var bytes = System.Text.Encoding.UTF8.GetBytes(note.Content);
     return Results.File(bytes, "text/markdown", $"{note.Title}.md");
-});
+}).WithSummary("Exporta uma nota como arquivo .md.");
 
 var sync = app.MapGroup("/sync").RequireAuthorization();
 
@@ -299,13 +319,13 @@ sync.MapGet("/status", async (SyncService syncService) =>
     var plan = await syncService.PreviewAsync();
     return Results.Ok(new SyncStatusResponse(
         plan.State.ToString(), plan.FilesChanged, plan.IncomingCommits));
-});
+}).WithSummary("Retorna um resumo rápido do estado de sincronização.");
 
 sync.MapPost("/preview", async (SyncService syncService) =>
 {
     var plan = await syncService.PreviewAsync();
     return Results.Ok(SyncPlanResponse.FromPlan(plan));
-});
+}).WithSummary("Calcula o plano de sincronização (o que seria enviado/recebido).");
 
 sync.MapPost("/apply", async (ApplySyncRequest request, SyncService syncService) =>
 {
@@ -322,7 +342,7 @@ sync.MapPost("/apply", async (ApplySyncRequest request, SyncService syncService)
         SyncApplyResult.GitFailure => Results.Problem(outcome.Detail),
         _ => Results.Problem()
     };
-});
+}).WithSummary("Aplica a sincronização: commit, pull e push no repositório de notas.");
 
 sync.MapGet("/history", async (ISyncCommitRepository commitRepository) =>
 {
@@ -330,12 +350,14 @@ sync.MapGet("/history", async (ISyncCommitRepository commitRepository) =>
 
     return Results.Ok(commits.Select(c => new SyncCommitSummaryResponse(
         c.CommitHash, c.Message, c.CommittedAt, c.FilesChanged, c.Insertions, c.Deletions)));
-});
+}).WithSummary("Lista os commits de sincronização mais recentes.");
 
 sync.MapGet("/history/{hash}", async (string hash, ISyncCommitRepository commitRepository) =>
 {
     var commit = await commitRepository.GetByHashAsync(hash);
     return commit is null ? Results.NotFound() : Results.Ok(SyncCommitDetailResponse.FromEntity(commit));
-});
+}).WithSummary("Retorna o detalhe de um commit de sincronização, incluindo os arquivos alterados.");
 
 app.Run();
+
+public partial class Program { }

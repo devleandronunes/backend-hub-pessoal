@@ -3,4 +3,6 @@
   <Project Path="HubPessoal.Application/HubPessoal.Application.csproj" />
   <Project Path="HubPessoal.Domain/HubPessoal.Domain.csproj" />
   <Project Path="HubPessoal.Infrastructure/HubPessoal.Infrastructure.csproj" />
+  <Project Path="HubPessoal.IntegrationTests/HubPessoal.IntegrationTests.csproj" />
+  <Project Path="HubPessoal.UnitTests/HubPessoal.UnitTests.csproj" />
 </Solution>
