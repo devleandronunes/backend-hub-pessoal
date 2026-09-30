@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text;
 
 namespace HubPessoal.IntegrationTests;
 
@@ -76,5 +77,67 @@ public class NotesEndpointsTests : IClassFixture<ApiFixture>
         });
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateNote_WithContentBase64_StoresDecodedContent()
+    {
+        var client = await TestClientFactory.CreateAuthorizedClientAsync(_fixture);
+        var created = await client.PostAsJsonAsync("/notes", new
+        {
+            title = "Nota base64",
+            contentBase64 = "",
+            folderId = (Guid?)null,
+            tags = Array.Empty<string>(),
+        });
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var id = (await created.Content.ReadFromJsonAsync<Dictionary<string, object>>())!["id"].ToString();
+
+        const string content = "# Conexão\n```\ncurl -fsSL https://example.com/install.sh | sh\n```";
+        var response = await client.PutAsJsonAsync($"/notes/{id}", new
+        {
+            title = "Nota base64",
+            contentBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(content)),
+            tags = Array.Empty<string>(),
+        });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var note = await response.Content.ReadFromJsonAsync<Dictionary<string, object>>();
+        Assert.Equal(content, note!["content"].ToString());
+    }
+
+    [Fact]
+    public async Task UpdateNote_WithInvalidBase64_ReturnsBadRequest()
+    {
+        var client = await TestClientFactory.CreateAuthorizedClientAsync(_fixture);
+
+        var response = await client.PutAsJsonAsync($"/notes/{Guid.NewGuid()}", new
+        {
+            title = "Qualquer",
+            contentBase64 = "não é base64",
+            tags = Array.Empty<string>(),
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateNote_WithDuplicateTitle_ReturnsProblemDetailsWithDetail()
+    {
+        var client = await TestClientFactory.CreateAuthorizedClientAsync(_fixture);
+        var payload = new
+        {
+            title = "Nota problem details",
+            content = "",
+            folderId = (Guid?)null,
+            tags = Array.Empty<string>(),
+        };
+
+        await client.PostAsJsonAsync("/notes", payload);
+        var second = await client.PostAsJsonAsync("/notes", payload);
+
+        Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
+        var problem = await second.Content.ReadFromJsonAsync<Dictionary<string, object>>();
+        Assert.Equal("A note with this title already exists in the same folder.", problem!["detail"].ToString());
     }
 }

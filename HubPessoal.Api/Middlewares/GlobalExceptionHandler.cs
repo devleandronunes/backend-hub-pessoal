@@ -28,11 +28,12 @@ public class GlobalExceptionHandler : IExceptionHandler
         var problemDetails = new
         {
             type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
-            title = "Erro interno do servidor",
+            title = "Internal server error",
             status = StatusCodes.Status500InternalServerError,
             detail = _environment.IsDevelopment()
                 ? exception.Message
-                : "Ocorreu um erro inesperado. Tente novamente mais tarde."
+                : "An unexpected error occurred. Try again later."
+
         };
 
         await httpContext.Response.WriteAsJsonAsync(

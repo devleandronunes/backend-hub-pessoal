@@ -181,8 +181,8 @@ folders.MapPost("/", async (CreateFolderRequest request, NoteFolderService folde
     return result switch
     {
         CreateFolderResult.Success => Results.Created($"/folders/{folder!.Id}", FolderResponse.FromEntity(folder)),
-        CreateFolderResult.ParentNotFound => Results.BadRequest("ParentFolderId does not exist."),
-        CreateFolderResult.DuplicateName => Results.Conflict("A folder with this name already exists in the same parent."),
+        CreateFolderResult.ParentNotFound => ApiProblems.BadRequest("ParentFolderId does not exist."),
+        CreateFolderResult.DuplicateName => ApiProblems.Conflict("A folder with this name already exists in the same parent."),
         _ => Results.Problem()
     };
 }).AddEndpointFilter<ValidationFilter<CreateFolderRequest>>().WithSummary("Cria uma nova pasta.");
@@ -194,7 +194,7 @@ folders.MapPut("/{id:guid}", async (Guid id, RenameFolderRequest request, NoteFo
     {
         RenameFolderResult.Success => Results.Ok(FolderResponse.FromEntity(folder!)),
         RenameFolderResult.NotFound => Results.NotFound(),
-        RenameFolderResult.DuplicateName => Results.Conflict("A folder with this name already exists in the same parent."),
+        RenameFolderResult.DuplicateName => ApiProblems.Conflict("A folder with this name already exists in the same parent."),
         _ => Results.Problem()
     };
 }).AddEndpointFilter<ValidationFilter<RenameFolderRequest>>().WithSummary("Renomeia uma pasta.");
@@ -206,9 +206,9 @@ folders.MapPatch("/{id:guid}/move", async (Guid id, MoveFolderRequest request, N
     {
         MoveFolderResult.Success => Results.NoContent(),
         MoveFolderResult.NotFound => Results.NotFound(),
-        MoveFolderResult.ParentNotFound => Results.BadRequest("ParentFolderId does not exist."),
-        MoveFolderResult.InvalidParent => Results.Conflict("Cannot move a folder into itself or one of its own descendants."),
-        MoveFolderResult.DuplicateName => Results.Conflict("A folder with this name already exists in the target parent."),
+        MoveFolderResult.ParentNotFound => ApiProblems.BadRequest("ParentFolderId does not exist."),
+        MoveFolderResult.InvalidParent => ApiProblems.Conflict("Cannot move a folder into itself or one of its own descendants."),
+        MoveFolderResult.DuplicateName => ApiProblems.Conflict("A folder with this name already exists in the target parent."),
         _ => Results.Problem()
     };
 }).AddEndpointFilter<ValidationFilter<MoveFolderRequest>>().WithSummary("Move uma pasta para outro pai (ou para a raiz).");
@@ -220,7 +220,7 @@ folders.MapDelete("/{id:guid}", async (Guid id, NoteFolderService folderService)
     {
         DeleteFolderResult.Success => Results.NoContent(),
         DeleteFolderResult.NotFound => Results.NotFound(),
-        DeleteFolderResult.NotEmpty => Results.Conflict("Folder is not empty. Move or delete its contents first."),
+        DeleteFolderResult.NotEmpty => ApiProblems.Conflict("Folder is not empty. Move or delete its contents first."),
         _ => Results.Problem()
     };
 }).WithSummary("Remove uma pasta vazia.");
@@ -247,24 +247,24 @@ notes.MapGet("/{id:guid}", async (Guid id, NoteService noteService) =>
 
 notes.MapPost("/", async (CreateNoteRequest request, NoteService noteService) =>
 {
-    var (result, note) = await noteService.CreateAsync(request.Title, request.Content, request.FolderId, request.Tags ?? new List<string>());
+    var (result, note) = await noteService.CreateAsync(request.Title, request.ResolveContent()!, request.FolderId, request.Tags ?? new List<string>());
     return result switch
     {
         CreateNoteResult.Success => Results.Created($"/notes/{note!.Id}", NoteResponse.FromEntity(note)),
-        CreateNoteResult.FolderNotFound => Results.BadRequest("FolderId does not exist."),
-        CreateNoteResult.DuplicateTitle => Results.Conflict("A note with this title already exists in the same folder."),
+        CreateNoteResult.FolderNotFound => ApiProblems.BadRequest("FolderId does not exist."),
+        CreateNoteResult.DuplicateTitle => ApiProblems.Conflict("A note with this title already exists in the same folder."),
         _ => Results.Problem()
     };
 }).AddEndpointFilter<ValidationFilter<CreateNoteRequest>>().WithSummary("Cria uma nova nota.");
 
 notes.MapPut("/{id:guid}", async (Guid id, UpdateNoteRequest request, NoteService noteService) =>
 {
-    var (result, note) = await noteService.UpdateAsync(id, request.Title, request.Content, request.Tags ?? new List<string>());
+    var (result, note) = await noteService.UpdateAsync(id, request.Title, request.ResolveContent()!, request.Tags ?? new List<string>());
     return result switch
     {
         UpdateNoteResult.Success => Results.Ok(NoteResponse.FromEntity(note!)),
         UpdateNoteResult.NotFound => Results.NotFound(),
-        UpdateNoteResult.DuplicateTitle => Results.Conflict("A note with this title already exists in the same folder."),
+        UpdateNoteResult.DuplicateTitle => ApiProblems.Conflict("A note with this title already exists in the same folder."),
         _ => Results.Problem()
     };
 }).AddEndpointFilter<ValidationFilter<UpdateNoteRequest>>().WithSummary("Atualiza título, conteúdo e tags de uma nota.");
@@ -276,8 +276,8 @@ notes.MapPatch("/{id:guid}/move", async (Guid id, MoveNoteRequest request, NoteS
     {
         MoveNoteResult.Success => Results.NoContent(),
         MoveNoteResult.NotFound => Results.NotFound(),
-        MoveNoteResult.FolderNotFound => Results.BadRequest("FolderId does not exist."),
-        MoveNoteResult.DuplicateTitle => Results.Conflict("A note with this title already exists in the target folder."),
+        MoveNoteResult.FolderNotFound => ApiProblems.BadRequest("FolderId does not exist."),
+        MoveNoteResult.DuplicateTitle => ApiProblems.Conflict("A note with this title already exists in the target folder."),
         _ => Results.Problem()
     };
 }).WithSummary("Move uma nota para outra pasta (ou para a raiz).");
