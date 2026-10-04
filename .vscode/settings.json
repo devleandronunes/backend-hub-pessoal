@@ -1,0 +1,10 @@
+{
+  "biome.enabled": false,
+  "files.encoding": "utf8",
+  "files.eol": "\n",
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp",
+    "editor.formatOnSave": true
+  },
+  "dotnet.formatting.organizeImportsOnFormat": true
+}

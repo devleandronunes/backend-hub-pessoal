@@ -1,0 +1,8 @@
+pre-commit:
+  jobs:
+    - name: format
+      glob: "*.cs"
+      exclude:
+        - "**/Migrations/**"
+      run: dotnet format HubPessoal.slnx --include {staged_files} --exclude HubPessoal.Infrastructure/Migrations
+      stage_fixed: true
