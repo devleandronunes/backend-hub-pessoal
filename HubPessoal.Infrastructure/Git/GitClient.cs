@@ -41,7 +41,8 @@ public class GitClient : IGitClient
         try
         {
             await process.WaitForExitAsync(timeout.Token);
-        } catch (OperationCanceledException)
+        }
+        catch (OperationCanceledException)
         {
             process.Kill(entireProcessTree: true);
             throw new TimeoutException($"git {string.Join(' ', arguments)} exceeded {CommandTimeout.TotalSeconds}s.");

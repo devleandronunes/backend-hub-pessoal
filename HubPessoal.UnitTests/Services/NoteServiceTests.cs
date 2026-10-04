@@ -5,7 +5,8 @@ using Moq;
 
 namespace HubPessoal.UnitTests.Services;
 
-public class NoteServiceTests {
+public class NoteServiceTests
+{
 
     private readonly Mock<INoteRepository> _noteRepository = new();
     private readonly Mock<INoteFolderRepository> _folderRepository = new();

@@ -1,25 +1,25 @@
-using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using FluentValidation;
+using HubPessoal.Api.Contracts;
+using HubPessoal.Api.Contracts.Folders;
+using HubPessoal.Api.Contracts.Notes;
+using HubPessoal.Api.Contracts.Sync;
+using HubPessoal.Api.Filters;
+using HubPessoal.Api.Middlewares;
 using HubPessoal.Application;
 using HubPessoal.Application.Interfaces;
+using HubPessoal.Application.Models;
+using HubPessoal.Application.Options;
+using HubPessoal.Application.Services;
 using HubPessoal.Domain.Entities;
 using HubPessoal.Infrastructure;
 using HubPessoal.Infrastructure.Data;
-using HubPessoal.Api.Middlewares;
-using HubPessoal.Api.Contracts;
-using HubPessoal.Api.Contracts.Notes;
-using HubPessoal.Api.Contracts.Folders;
-using HubPessoal.Application.Services;
-using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using HubPessoal.Api.Filters;
-using HubPessoal.Application.Options;
-using HubPessoal.Api.Contracts.Sync;
-using HubPessoal.Application.Models;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -149,7 +149,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 // app.MapGet("/", () => "Hub Pessoal API - v1.0.0");
 app.MapHealthChecks("/health");
 
-app.MapPost("/auth/login", async(LoginRequest request, AuthService authService) =>
+app.MapPost("/auth/login", async (LoginRequest request, AuthService authService) =>
 {
     var token = await authService.LoginAsync(request.Username, request.Password);
     return token is null

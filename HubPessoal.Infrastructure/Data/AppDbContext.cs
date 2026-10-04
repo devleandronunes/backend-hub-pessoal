@@ -21,7 +21,7 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-           entity.HasIndex(u => u.Username).IsUnique();
+            entity.HasIndex(u => u.Username).IsUnique();
         });
 
         modelBuilder.Entity<NoteFolder>(entity =>

@@ -1,6 +1,5 @@
 using HubPessoal.Application.Interfaces;
 using HubPessoal.Domain.Entities;
-using HubPessoal.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace HubPessoal.Infrastructure.Data.Repositories;

@@ -91,7 +91,10 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
             RedirectStandardOutput = true,
             RedirectStandardError = true,
         };
-        foreach (var arg in arguments) startInfo.ArgumentList.Add(arg);
+        foreach (var arg in arguments)
+        {
+            startInfo.ArgumentList.Add(arg);
+        }
 
         using var process = System.Diagnostics.Process.Start(startInfo)!;
         await process.WaitForExitAsync();
@@ -100,7 +103,14 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
     public new async Task DisposeAsync()
     {
         await _postgres.DisposeAsync();
-        if (Directory.Exists(GitRemotePath)) Directory.Delete(GitRemotePath, recursive: true);
-        if (Directory.Exists(_gitWorkingDirectory)) Directory.Delete(_gitWorkingDirectory, recursive: true);
+        if (Directory.Exists(GitRemotePath))
+        {
+            Directory.Delete(GitRemotePath, recursive: true);
+        }
+
+        if (Directory.Exists(_gitWorkingDirectory))
+        {
+            Directory.Delete(_gitWorkingDirectory, recursive: true);
+        }
     }
 }

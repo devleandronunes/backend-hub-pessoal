@@ -6,7 +6,7 @@ public static class NoteContentEnconding
 {
     public static string? Resolve(string? content, string? contentBase64)
     {
-        if(contentBase64 is null)
+        if (contentBase64 is null)
         {
             return content;
         }

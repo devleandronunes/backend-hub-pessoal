@@ -26,10 +26,25 @@ public class GitOptions
     {
         var missing = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(RepositoryUrl)) missing.Add(nameof(RepositoryUrl));
-        if (string.IsNullOrWhiteSpace(Token)) missing.Add(nameof(Token));
-        if (string.IsNullOrWhiteSpace(AuthorName)) missing.Add(nameof(AuthorName));
-        if (string.IsNullOrWhiteSpace(AuthorEmail)) missing.Add(nameof(AuthorEmail));
+        if (string.IsNullOrWhiteSpace(RepositoryUrl))
+        {
+            missing.Add(nameof(RepositoryUrl));
+        }
+
+        if (string.IsNullOrWhiteSpace(Token))
+        {
+            missing.Add(nameof(Token));
+        }
+
+        if (string.IsNullOrWhiteSpace(AuthorName))
+        {
+            missing.Add(nameof(AuthorName));
+        }
+
+        if (string.IsNullOrWhiteSpace(AuthorEmail))
+        {
+            missing.Add(nameof(AuthorEmail));
+        }
 
         if (missing.Count > 0)
         {
