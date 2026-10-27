@@ -1,7 +1,9 @@
-![header](https://capsule-render.vercel.app/api?type=waving&color=0:6366F1,100:22D3EE&height=180&section=header&text=Hub%20Pessoal%20%E2%80%93%20API&fontSize=42&fontColor=ffffff&animation=fadeIn)
+<p align="center">
+  <img src=".github/assets/readme-header.png" alt="Personal Hub" width="100%" />
+</p>
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=18&pause=1000&color=6366F1&center=true&vCenter=true&width=560&lines=Clean+Architecture+em+.NET+10;Notas+versionadas+em+git%2C+de+verdade;Postgres+como+c%C3%B3pia+de+trabalho%2C+git+como+hist%C3%B3rico" alt="typing banner" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=18&pause=1000&color=FFC71F&center=true&vCenter=true&width=560&lines=Clean+Architecture+em+.NET+10;Notas+versionadas+em+git%2C+de+verdade;Postgres+como+c%C3%B3pia+de+trabalho%2C+git+como+hist%C3%B3rico" alt="typing banner" />
 </p>
 
 <p align="center">
